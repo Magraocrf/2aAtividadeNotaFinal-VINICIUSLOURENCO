@@ -1,0 +1,50 @@
+<?php
+// Conexão com o banco de dados SQLite
+$db = new PDO('sqlite:tarefas.db');
+
+// Criação da tabela, se não existir
+$db->exec("CREATE TABLE IF NOT EXISTS tarefas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    descricao TEXT NOT NULL,
+    vencimento DATE NOT NULL,
+    concluida INTEGER DEFAULT 0
+)");
+
+// Adicionar tarefa
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['descricao'], $_POST['vencimento'])) {
+    $stmt = $db->prepare("INSERT INTO tarefas (descricao, vencimento) VALUES (:descricao, :vencimento)");
+    $stmt->bindParam(':descricao', $_POST['descricao']);
+    $stmt->bindParam(':vencimento', $_POST['vencimento']);
+    $stmt->execute();
+    header("Location: tarefas.php");
+    exit;
+}
+
+// Marcar como concluída
+if (isset($_GET['concluir'])) {
+    $id = $_GET['concluir'];
+    $stmt = $db->prepare("UPDATE tarefas SET concluida = 1 WHERE id = :id");
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+    header("Location: tarefas.php");
+    exit;
+}
+
+// Excluir tarefa
+if (isset($_GET['excluir'])) {
+    $id = $_GET['excluir'];
+    $stmt = $db->prepare("DELETE FROM tarefas WHERE id = :id");
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+    header("Location: tarefas.php");
+    exit;
+}
+
+// Buscar tarefas
+$pendentes = $db->query("SELECT * FROM tarefas WHERE concluida = 0 ORDER BY vencimento ASC")->fetchAll(PDO::FETCH_ASSOC);
+$concluidas = $db->query("SELECT * FROM tarefas WHERE concluida = 1 ORDER BY vencimento ASC")->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
