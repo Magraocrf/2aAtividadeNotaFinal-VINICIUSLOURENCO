@@ -1,5 +1,5 @@
 <?php
-// Conexão com o banco de dados (substitui database.php)
+// Conexão com o banco de dados
 $db = new PDO('sqlite:livraria.db');
 
 // Criação da tabela, caso não exista
@@ -11,13 +11,13 @@ $db->exec("CREATE TABLE IF NOT EXISTS livros (
 )");
 
 // Adicionar livro
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['titulo'], $_POST['autor'], $_POST['ano'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['titulo'], $_POST['autor'], $_POST['ano']) && !isset($_POST['id'])) {
     $stmt = $db->prepare("INSERT INTO livros (titulo, autor, ano) VALUES (:titulo, :autor, :ano)");
     $stmt->bindParam(':titulo', $_POST['titulo']);
     $stmt->bindParam(':autor', $_POST['autor']);
     $stmt->bindParam(':ano', $_POST['ano']);
     $stmt->execute();
-    header('Location: livraria.php');
+    header('Location: QUESTÃO-1'); // Troque pelo nome correto do arquivo, se necessário
     exit;
 }
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id']) && !isset($_POS
     $stmt = $db->prepare("DELETE FROM livros WHERE id = :id");
     $stmt->bindParam(':id', $_POST['id']);
     $stmt->execute();
-    header('Location: livraria.php');
+    header('Location: QUESTÃO-1'); // Troque pelo nome correto do arquivo, se necessário
     exit;
 }
 
@@ -47,7 +47,7 @@ $livros = $result->fetchAll(PDO::FETCH_ASSOC);
         <ul>
             <?php foreach ($livros as $livro): ?>
                 <li>
-                    <strong><?= htmlspecialchars($livro['titulo']) ?></strong> - 
+                    <strong><?= htmlspecialchars($livro['titulo']) ?></strong> -
                     <?= htmlspecialchars($livro['autor']) ?> (<?= $livro['ano'] ?>)
                     <form method="post" style="display:inline">
                         <input type="hidden" name="id" value="<?= $livro['id'] ?>">
@@ -56,3 +56,16 @@ $livros = $result->fetchAll(PDO::FETCH_ASSOC);
                 </li>
             <?php endforeach; ?>
         </ul>
+    <?php else: ?>
+        <p>Nenhum livro cadastrado.</p>
+    <?php endif; ?>
+
+    <h2>Adicionar Livro</h2>
+    <form method="post">
+        <input type="text" name="titulo" placeholder="Título" required>
+        <input type="text" name="autor" placeholder="Autor" required>
+        <input type="number" name="ano" placeholder="Ano" required>
+        <button type="submit">Adicionar</button>
+    </form>
+</body>
+</html>
